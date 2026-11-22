@@ -10,6 +10,7 @@ import labs.engineeringproof.policylab.policies.PolicyChunk;
 import labs.engineeringproof.policylab.policies.PolicyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,15 +27,34 @@ final class QuestionService {
         this.generator = generator;
     }
 
-    Answer ask(UUID requestId, String question) {
-        var evidence = policies.search(question);
+    Answer ask(UUID requestId, String question, List<String> groups) {
+        long started = System.nanoTime();
+        List<PolicyChunk> evidence;
+        try {
+            evidence = policies.search(question, groups);
+        } catch (DataAccessException failure) {
+            log.warn("requestId={} retrievalMs={} retrievalStatus=policy_storage_unavailable",
+                    requestId, elapsedMs(started));
+            throw failure;
+        }
+        var selectedIds = evidence.stream().map(PolicyChunk::chunkId).toList();
+        log.info("requestId={} retrievalMs={} selectedEvidenceChunkIds={}", requestId, elapsedMs(started), selectedIds);
         if (evidence.isEmpty()) {
             return new Answer(requestId, INSUFFICIENT, null, List.of());
         }
 
-        log.info("requestId={} modelEvidenceChunkIds={}", requestId,
-                evidence.stream().map(PolicyChunk::chunkId).toList());
-        var draft = generator.generate(question, evidence);
+        started = System.nanoTime();
+        AnswerGenerator.Draft draft;
+        try {
+            draft = generator.generate(requestId, question, evidence);
+        } catch (QuestionFailure failure) {
+            log.warn("requestId={} generationMs={} generationStatus={}", requestId, elapsedMs(started), failure.code());
+            throw failure;
+        }
+        log.info("requestId={} generationMs={} generationStatus=received", requestId, elapsedMs(started));
+        if (!policies.evidenceStillEligible(selectedIds, groups)) {
+            throw QuestionFailure.evidenceChanged();
+        }
         validateFields(draft);
         if (INSUFFICIENT.equals(draft.status())) {
             return new Answer(requestId, INSUFFICIENT, null, List.of());
@@ -46,6 +66,10 @@ final class QuestionService {
         }
         var citations = draft.chunkIds().stream().distinct().map(sentById::get).map(Citation::from).toList();
         return new Answer(requestId, ANSWERED, draft.answer(), citations);
+    }
+
+    private static long elapsedMs(long started) {
+        return (System.nanoTime() - started) / 1_000_000;
     }
 
     private static void validateFields(AnswerGenerator.Draft draft) {

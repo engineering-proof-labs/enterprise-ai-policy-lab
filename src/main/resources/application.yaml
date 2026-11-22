@@ -20,6 +20,11 @@ spring:
       enabled: true
 
 lab:
+  auth:
+    issuer: http://127.0.0.1:18081/realms/policy-lab
+    jwk-set-uri: http://127.0.0.1:18081/realms/policy-lab/protocol/openid-connect/certs
+    audience: policy-api
   ollama:
     url: http://127.0.0.1:11434
     model: qwen2.5:1.5b
+    timeout: 30s

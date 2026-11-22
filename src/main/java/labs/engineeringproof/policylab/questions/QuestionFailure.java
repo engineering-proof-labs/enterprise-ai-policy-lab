@@ -10,9 +10,18 @@ final class QuestionFailure extends ErrorResponseException {
         getBody().setProperty("code", code);
     }
 
+    String code() {
+        return (String) getBody().getProperties().get("code");
+    }
+
     static QuestionFailure invalidModelOutput() {
         return new QuestionFailure(HttpStatus.BAD_GATEWAY, "invalid_model_output",
                 "The model returned an invalid answer or citation.");
+    }
+
+    static QuestionFailure evidenceChanged() {
+        return new QuestionFailure(HttpStatus.CONFLICT, "evidence_changed",
+                "Policy access or revision changed while answering. Retry the question.");
     }
 
     static QuestionFailure modelUnavailable() {

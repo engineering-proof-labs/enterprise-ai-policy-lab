@@ -7,11 +7,23 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/policies
       LAB_OLLAMA_URL: http://ollama:11434
+      LAB_AUTH_ISSUER: http://127.0.0.1:${LAB_IDP_PORT:-18081}/realms/policy-lab
+      LAB_AUTH_JWK_SET_URI: http://identity:8080/realms/policy-lab/protocol/openid-connect/certs
     depends_on:
       db:
         condition: service_healthy
       ollama:
         condition: service_healthy
+      identity:
+        condition: service_started
+
+  identity:
+    image: quay.io/keycloak/keycloak:26.6.4
+    command: ["start-dev", "--import-realm", "--hostname=http://127.0.0.1:${LAB_IDP_PORT:-18081}"]
+    ports:
+      - "127.0.0.1:${LAB_IDP_PORT:-18081}:8080"
+    volumes:
+      - ./identity/policy-lab-realm.json:/opt/keycloak/data/import/policy-lab-realm.json:ro
 
   db:
     image: postgres:17.12-bookworm
@@ -36,6 +48,19 @@ services:
       retries: 15
     volumes:
       - model-data:/root/.ollama
+
+  eval-db:
+    image: pgvector/pgvector:0.8.7-pg17-bookworm
+    profiles: ["evaluation"]
+    environment:
+      POSTGRES_DB: policy_eval
+      POSTGRES_USER: policy_lab
+      POSTGRES_PASSWORD: policy_lab
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "policy_lab", "-d", "policy_eval"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
 
 volumes:
   policy-data:

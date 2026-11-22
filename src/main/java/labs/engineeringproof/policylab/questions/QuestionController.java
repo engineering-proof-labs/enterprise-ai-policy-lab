@@ -8,16 +8,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import labs.engineeringproof.policylab.policies.PolicyChunk;
 import labs.engineeringproof.policylab.policies.PolicyRepository;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import labs.engineeringproof.policylab.security.PolicySecurity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 final class QuestionController {
@@ -30,24 +29,16 @@ final class QuestionController {
     }
 
     @PostMapping("/questions")
-    QuestionService.Answer ask(@Valid @RequestBody AskQuestionRequest request, HttpServletResponse response) {
+    QuestionService.Answer ask(@Valid @RequestBody AskQuestionRequest request,
+                               @AuthenticationPrincipal Jwt jwt, HttpServletResponse response) {
         var requestId = UUID.randomUUID();
         response.setHeader("X-Request-Id", requestId.toString());
-        return questions.ask(requestId, request.question());
+        return questions.ask(requestId, request.question(), PolicySecurity.groups(jwt));
     }
 
     @GetMapping("/sources/{chunkId}")
-    PolicyChunk source(@PathVariable String chunkId) {
-        return policies.findActiveChunk(chunkId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Source not found."));
-    }
-
-    @ExceptionHandler(DataAccessException.class)
-    ProblemDetail dataUnavailable() {
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
-                "Policy storage is temporarily unavailable.");
-        problem.setProperty("code", "policy_storage_unavailable");
-        return problem;
+    ResponseEntity<PolicyChunk> source(@PathVariable String chunkId, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.of(policies.findActiveChunk(chunkId, PolicySecurity.groups(jwt)));
     }
 
     record AskQuestionRequest(@NotBlank @Size(max = 500) String question) {

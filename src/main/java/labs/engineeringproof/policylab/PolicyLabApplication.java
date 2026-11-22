@@ -6,6 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class PolicyLabApplication {
     public static void main(String[] args) {
-        SpringApplication.run(PolicyLabApplication.class, args);
+        var application = SpringApplication.run(PolicyLabApplication.class, args);
+        if (application.getEnvironment().matchesProfiles("retrieval-eval")) {
+            application.close();
+        }
     }
 }
