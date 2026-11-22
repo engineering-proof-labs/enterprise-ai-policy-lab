@@ -1,0 +1,231 @@
+{
+  "corpus": "routing-fixture-1",
+  "cases": [
+    {
+      "id": "c01",
+      "split": "calibration",
+      "scenario": "direct",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Where do I route billing tickets?",
+      "expected": [
+        "ticket-routing-v1-billing"
+      ]
+    },
+    {
+      "id": "c02",
+      "split": "calibration",
+      "scenario": "direct",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Password reset requests",
+      "expected": [
+        "ticket-routing-v1-password-reset"
+      ]
+    },
+    {
+      "id": "c03",
+      "split": "calibration",
+      "scenario": "exception",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Route duplicate charge billing tickets",
+      "expected": []
+    },
+    {
+      "id": "c04",
+      "split": "calibration",
+      "scenario": "exception",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "Route duplicate charge billing tickets",
+      "expected": [
+        "supervisor-routing-v2-duplicate-charge"
+      ]
+    },
+    {
+      "id": "c05",
+      "split": "calibration",
+      "scenario": "paraphrase",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "A customer was billed twice. Which team handles it?",
+      "expected": [
+        "supervisor-routing-v2-duplicate-charge"
+      ]
+    },
+    {
+      "id": "c06",
+      "split": "calibration",
+      "scenario": "missing",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "What is the travel reimbursement policy?",
+      "expected": []
+    },
+    {
+      "id": "c07",
+      "split": "calibration",
+      "scenario": "ambiguous",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Where should I forward it?",
+      "expected": []
+    },
+    {
+      "id": "c08",
+      "split": "calibration",
+      "scenario": "direct",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "Priority outage tickets",
+      "expected": [
+        "supervisor-routing-v2-priority-outage"
+      ]
+    },
+    {
+      "id": "c09",
+      "split": "calibration",
+      "scenario": "paraphrase",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Which team helps customers recover their login credentials?",
+      "expected": [
+        "ticket-routing-v1-password-reset"
+      ]
+    },
+    {
+      "id": "c10",
+      "split": "calibration",
+      "scenario": "revision",
+      "group": "supervisor",
+      "revision": "v3",
+      "question": "Duplicate charge billing tickets",
+      "expected": [
+        "supervisor-routing-v3-duplicate-charge"
+      ]
+    },
+    {
+      "id": "h01",
+      "split": "holdout",
+      "scenario": "paraphrase",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Which department should receive an invoice complaint?",
+      "expected": [
+        "ticket-routing-v1-billing"
+      ]
+    },
+    {
+      "id": "h02",
+      "split": "holdout",
+      "scenario": "direct",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Invoice number for billing tickets",
+      "expected": [
+        "ticket-routing-v1-billing"
+      ]
+    },
+    {
+      "id": "h03",
+      "split": "holdout",
+      "scenario": "paraphrase",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "Who receives urgent service disruption reports?",
+      "expected": [
+        "supervisor-routing-v2-priority-outage"
+      ]
+    },
+    {
+      "id": "h04",
+      "split": "holdout",
+      "scenario": "restricted",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "Who handles urgent service disruption reports?",
+      "expected": []
+    },
+    {
+      "id": "h05",
+      "split": "holdout",
+      "scenario": "revision",
+      "group": "supervisor",
+      "revision": "v3",
+      "question": "Route duplicate charge billing tickets",
+      "expected": [
+        "supervisor-routing-v3-duplicate-charge"
+      ]
+    },
+    {
+      "id": "h06",
+      "split": "holdout",
+      "scenario": "revision",
+      "group": "analyst",
+      "revision": "v3",
+      "question": "Route duplicate charge billing tickets",
+      "expected": []
+    },
+    {
+      "id": "h07",
+      "split": "holdout",
+      "scenario": "ambiguous",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "Route tickets",
+      "expected": []
+    },
+    {
+      "id": "h08",
+      "split": "holdout",
+      "scenario": "missing",
+      "group": "analyst",
+      "revision": "v2",
+      "question": "What is the procedure for shipping a laptop?",
+      "expected": []
+    },
+    {
+      "id": "h09",
+      "split": "holdout",
+      "scenario": "direct",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "Password reset account access",
+      "expected": [
+        "ticket-routing-v1-password-reset"
+      ]
+    },
+    {
+      "id": "h10",
+      "split": "holdout",
+      "scenario": "revision",
+      "group": "supervisor",
+      "revision": "v1",
+      "question": "Duplicate charge billing tickets",
+      "expected": [
+        "supervisor-routing-v1-duplicate-charge"
+      ]
+    },
+    {
+      "id": "h11",
+      "split": "holdout",
+      "scenario": "direct",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "Route priority outage tickets",
+      "expected": [
+        "supervisor-routing-v2-priority-outage"
+      ]
+    },
+    {
+      "id": "h12",
+      "split": "holdout",
+      "scenario": "unsupported-detail",
+      "group": "supervisor",
+      "revision": "v2",
+      "question": "What is the maximum priority outage response time?",
+      "expected": []
+    }
+  ]
+}

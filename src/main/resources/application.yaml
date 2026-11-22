@@ -1,0 +1,30 @@
+server:
+  address: 127.0.0.1
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/policies
+    username: policy_lab
+    password: policy_lab
+    hikari:
+      connection-timeout: 2000
+  jdbc:
+    template:
+      query-timeout: 2s
+  mvc:
+    problemdetails:
+      enabled: true
+
+lab:
+  auth:
+    issuer: http://127.0.0.1:18081/realms/policy-lab
+    jwk-set-uri: http://127.0.0.1:18081/realms/policy-lab/protocol/openid-connect/certs
+    audience: policy-api
+  ollama:
+    url: http://127.0.0.1:11434
+    model: qwen2.5:1.5b
+    timeout: 30s

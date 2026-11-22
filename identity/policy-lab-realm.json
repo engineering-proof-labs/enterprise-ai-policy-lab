@@ -1,0 +1,89 @@
+{
+  "realm": "policy-lab",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 900,
+  "registrationAllowed": false,
+  "groups": [
+    {
+      "name": "analyst"
+    },
+    {
+      "name": "supervisor"
+    },
+    {
+      "name": "policy-publisher"
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "policy-demo",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "fullScopeAllowed": true,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "policy groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "false",
+            "claim.name": "groups",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "policy API audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "policy-api",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "analyst",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "analyst",
+      "lastName": "Fixture",
+      "email": "analyst@example.invalid",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "analyst-demo",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/analyst"
+      ]
+    },
+    {
+      "username": "supervisor",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "supervisor",
+      "lastName": "Fixture",
+      "email": "supervisor@example.invalid",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "supervisor-demo",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/supervisor",
+        "/policy-publisher"
+      ]
+    }
+  ]
+}
