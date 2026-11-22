@@ -1,43 +1,49 @@
 # Enterprise AI Policy Lab
 
-A Java lab for answering support policy questions from a fictional ticket routing guide. The first slice looks up sections of the active revision in PostgreSQL, sends them to Ollama through Spring AI, and validates the model's citations before returning them.
-
-This slice runs locally with a shared fixture. JWT, group permissions, and revision publication are the next slice. Retrieval currently requires every normalized search term to match, so a paraphrase can miss a relevant section.
+A Java and Spring AI lab for answering questions about fictional support policies. A support analyst and a supervisor can ask the same question and receive different evidence. PostgreSQL filters by document permission and active revision before the app sends passages to the model.
 
 ## Run the demo
 
-Use Docker with Compose and PowerShell 7 for the demo script. The first run builds the app and downloads the Qwen2.5 1.5B model. Ollama and PostgreSQL are reachable from the app on the Compose network. The HTTP API listens on 127.0.0.1:18080. To use a different host port, set LAB_HTTP_PORT before starting Compose and pass the matching -BaseUrl to the demo script.
+Use Docker with Compose and PowerShell 7. The API listens on `127.0.0.1:18080` and Keycloak on `127.0.0.1:18081`. The first run builds the app, imports a demo realm, and downloads the Qwen2.5 1.5B model. The warm-up command loads the model before the timed API request.
 
 ```sh
 docker compose up -d --build
 docker compose exec -T ollama ollama pull qwen2.5:1.5b
+docker compose exec -T ollama ollama run qwen2.5:1.5b "Reply with the word ready."
 pwsh -File scripts/demo.ps1
 ```
 
-The script prints the answer to “Where do I route billing tickets?”, opens its citation, and asks a question about travel reimbursement. To inspect the evidence IDs selected for model context, match the response's `requestId` to `docker compose logs app`. To stop the services and keep the data and model volumes, run `docker compose down`.
+The script authenticates both fixture users and asks the same duplicate-charge routing question. It checks that the analyst gets `insufficient_evidence` and cannot open the supervisor's source. It checks that the supervisor gets Revenue Assurance in `v2` and Payments Review after publishing `v3`. It opens both citations while they are active, verifies that the old source returns `404`, and restores `v2`. The script prints the authenticated source URL and the model's evidence IDs for each supervisor request.
+
+The Keycloak realm contains the demo users `analyst` and `supervisor`, with passwords `analyst-demo` and `supervisor-demo`. The realm uses a direct password grant for this loopback demonstration. Set `LAB_HTTP_PORT` or `LAB_IDP_PORT` before starting Compose to change host ports and pass the matching `-BaseUrl` or `-IdentityUrl` to the script. Run `docker compose --profile evaluation down` to stop the lab while retaining the named data and model volumes.
 
 ## HTTP contract
 
-`POST /questions` accepts JSON such as `{"question":"Where do I route billing tickets?"}`. The question must contain text and fit within 500 characters.
+Send a signed access token in the `Authorization: Bearer` header. `POST /questions` accepts a single question of up to 500 characters, for example `{"question":"Route duplicate charge billing tickets"}`.
 
-| Result | HTTP | Body |
+| Route or result | HTTP | Behavior |
 | --- | --- | --- |
-| Answer | 200 | `status: answered`, `answer`, `requestId`, and document, revision, section, and URL for each citation |
-| Insufficient evidence | 200 | `status: insufficient_evidence`, `requestId`, a null `answer`, and empty `citations` |
+| `POST /questions`, answered | 200 | `answered`, answer text, request ID, and citations with document, revision, section, and source URL |
+| `POST /questions`, insufficient evidence | 200 | `insufficient_evidence`, request ID, null answer, and no citations |
+| `GET /sources/{chunkId}` | 200 or 404 | Reads the current authorized source. A missing, inactive, or inaccessible ID gets the same empty 404. |
+| `PUT /policies/{documentId}/active-revision` | 204 or 404 | A member of `policy-publisher` can select a revision using `{"revisionId":"v3"}`. A missing document or revision returns 404. |
+| Absent or invalid token | 401 | JWT authentication failed. |
+| Insufficient publication permission | 403 | A valid token lacks the publisher group. |
 | Invalid input | 400 | Problem detail |
-| Invalid model output or citation | 502 | Problem detail with `code: invalid_model_output` |
-| Model or policy storage unavailable | 503 | Problem detail with `code: model_unavailable` or `code: policy_storage_unavailable` |
+| Evidence changed during generation | 409 | `evidence_changed`. The client can retry the question. |
+| Invalid model output or citation | 502 | `invalid_model_output` |
+| Model or policy storage unavailable | 503 | `model_unavailable` or `policy_storage_unavailable` |
 
-A valid question gets a server-generated `X-Request-Id` even when processing fails. Fetch the citation's `sourceUrl` with `GET /sources/{chunkId}` to read its text. An unknown or inactive chunk returns 404.
+The resource server verifies signature, issuer, expiration and audience before reading groups. Document permissions are checked in SQL on each request. Identity group changes apply after token renewal or expiration. Search ranks up to three active, permitted sections and releases the database connection before generation. The app requires a valid citation for an answer and revalidates every selected section after generation. Revocation can invalidate the response once observed. A later revocation cannot undo text already sent to the provider.
 
-PostgreSQL ranks matching sections of the active revision and returns up to three. An empty result skips generation. The model returns the answer and cited IDs under a JSON schema. The API checks those IDs against the exact set of retrieved sections and builds the citation fields from PostgreSQL. Citation membership alone cannot establish whether the source supports the model's claim.
+`X-Request-Id` connects a question to stage durations, evidence IDs, and token counts when the provider supplies them. The app logs those fields without question text, answer text, source bodies, or bearer tokens.
 
-## Verify
+## Verify and reproduce
 
-Use Java 21 and a running Docker engine for the deterministic suite. Testcontainers starts a separate PostgreSQL, applies the Flyway migrations, and runs the API with a model substitute. The Compose demo above exercises the real model separately.
+Use Java 21 and a running Docker engine for the deterministic suite. Testcontainers starts PostgreSQL, applies the Flyway migrations, and runs the API with real signed test tokens and a controlled answer generator. Separate tests run the Ollama adapter against a local HTTP fixture to verify JSON conversion and deadlines.
 
 ```sh
-./mvnw verify
+./mvnw --batch-mode --no-transfer-progress verify
 ```
 
-On Windows use `mvnw.cmd verify` or `./mvnw.cmd verify` in PowerShell. The app uses Spring Boot 3.5.15 and Spring AI 1.1.8. [Spring AI release notes](https://spring.io/blog/2026/06/12/spring-ai-1-1-8-1-0-9-avaialble-now/) · [Ollama structured output](https://docs.ollama.com/capabilities/structured-outputs)
+Use `mvnw.cmd verify` on Windows. See [The Same Question, Different Evidence](docs/case.md) for the demonstration and [Evaluation](docs/evaluation.md) for the retrieval comparison, quality rubric, and reproduction commands.
