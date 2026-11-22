@@ -13,7 +13,7 @@ function Get-LabToken([string]$IdentityUrl, [string]$Role) {
 function Invoke-LabQuestion([string]$BaseUrl, [string]$Token, [string]$Question) {
     $BaseUrl = $BaseUrl.TrimEnd('/')
     $response = Invoke-WebRequest -Method Post -Uri "$BaseUrl/questions" -ContentType 'application/json' `
-        -Headers @{ Authorization = "Bearer $Token" } -TimeoutSec 65 -SkipHttpErrorCheck `
+        -Headers @{ Authorization = "Bearer $Token" } -TimeoutSec 95 -SkipHttpErrorCheck `
         -Body (@{ question = $Question } | ConvertTo-Json -Compress)
     $content = $response.Content
     if ($content -is [byte[]]) { $content = [Text.Encoding]::UTF8.GetString($content) }

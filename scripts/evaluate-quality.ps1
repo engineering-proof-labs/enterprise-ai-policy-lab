@@ -14,6 +14,8 @@ $ollamaVersion = docker compose exec -T ollama ollama --version | Out-String
 if ($LASTEXITCODE -ne 0) { throw 'Could not read the Ollama version.' }
 $model = docker compose exec -T ollama ollama list | Select-String '^qwen2\.5:1\.5b\s+(?<id>[a-f0-9]+)'
 if ($LASTEXITCODE -ne 0 -or !$model) { throw 'Evaluation requires the qwen2.5:1.5b fixture model.' }
+$providerDeadline = (docker compose exec -T app printenv LAB_OLLAMA_TIMEOUT | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or !$providerDeadline) { throw 'Could not read the app deadline.' }
 $tokens = @{
     analyst = Wait-LabToken $IdentityUrl 'analyst'
     supervisor = Get-LabToken $IdentityUrl 'supervisor'
@@ -106,4 +108,5 @@ foreach ($row in $results) {
     seed = 42
     contextTokens = 4096
     maxOutputTokens = 256
+    providerDeadline = $providerDeadline
 } | ConvertTo-Json -Compress)

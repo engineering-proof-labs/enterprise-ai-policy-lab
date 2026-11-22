@@ -7,6 +7,7 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/policies
       LAB_OLLAMA_URL: http://ollama:11434
+      LAB_OLLAMA_TIMEOUT: "${LAB_OLLAMA_TIMEOUT:-75s}"
       LAB_AUTH_ISSUER: http://127.0.0.1:${LAB_IDP_PORT:-18081}/realms/policy-lab
       LAB_AUTH_JWK_SET_URI: http://identity:8080/realms/policy-lab/protocol/openid-connect/certs
     depends_on:

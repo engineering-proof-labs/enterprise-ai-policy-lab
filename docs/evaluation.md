@@ -39,7 +39,7 @@ Review each answer against its question and quoted sections. A correct supported
 
 ### Observed on 22 November 2026
 
-Qwen2.5 1.5B (`65ec06548149`) ran through Ollama 0.40.17 with text retrieval, temperature 0, seed 42, 4,096 context tokens and 256 output tokens. The warm run made 24 API requests across 12 distinct holdout questions and two repetitions. Twelve of the requests called the model.
+Qwen2.5 1.5B (`65ec06548149`) ran through Ollama 0.40.17 with text retrieval, temperature 0, seed 42, 4,096 context tokens, 256 output tokens and a 30-second provider deadline for this run. The warm run made 24 API requests across 12 distinct holdout questions and two repetitions. Twelve of the requests called the model.
 
 | Manual outcome | Count |
 | --- | ---: |

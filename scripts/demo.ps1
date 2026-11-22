@@ -10,13 +10,14 @@ $analyst = Wait-LabToken $IdentityUrl 'analyst'
 $supervisor = Get-LabToken $IdentityUrl 'supervisor'
 $question = 'Route duplicate charge billing tickets'
 
-for ($attempt = 1; $attempt -le 25; $attempt++) {
+$wait = [Diagnostics.Stopwatch]::StartNew()
+while ($true) {
     try {
         Invoke-RestMethod -Uri "$BaseUrl/sources/ticket-routing-v1-billing" -TimeoutSec 3 `
             -Headers @{ Authorization = "Bearer $analyst" } | Out-Null
         break
     } catch {
-        if ($attempt -eq 25) { throw }
+        if ($wait.Elapsed.TotalSeconds -ge 90) { throw }
         Start-Sleep -Seconds 1
     }
 }

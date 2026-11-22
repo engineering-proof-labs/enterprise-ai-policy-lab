@@ -4,7 +4,7 @@ A Java and Spring AI lab for answering questions about fictional support policie
 
 ## Run the demo
 
-Use Docker with Compose and PowerShell 7. The API listens on `127.0.0.1:18080` and Keycloak on `127.0.0.1:18081`. The first run builds the app, imports a demo realm, and downloads the Qwen2.5 1.5B model. The warm-up command loads the model before the timed API request.
+Use Docker with Compose and PowerShell 7. The API listens on `127.0.0.1:18080` and Keycloak on `127.0.0.1:18081`. The first run builds the app, imports a demo realm, and downloads the Qwen2.5 1.5B model. The warm-up command loads the model before the timed API request. Compose gives the model one attempt with a 75-second deadline for CPU startup and inference. Set `LAB_OLLAMA_TIMEOUT` before starting Compose to adjust that deadline.
 
 ```sh
 docker compose up -d --build
